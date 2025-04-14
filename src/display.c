@@ -173,11 +173,11 @@ void oled_write_string(const char* str) {
 }
 
 void oled_fill(uint8_t color) {
-    for (uint8_t page = 0; page < 8; page++) {
+    for (uint8_t page = 0; page < SCREEN_PAGES; page++) {
         oled_command(0xB0 + page); // Set page address
         oled_command(0x02);        // Lower byte of column address
         oled_command(0x10);        // Upper byte of column address
-        for (uint8_t i = 0; i < 128; i++) {
+        for (uint8_t i = 0; i < SCREEN_WIDTH; i++) {
             oled_send_data(color);
         }
     }

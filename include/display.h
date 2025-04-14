@@ -1,6 +1,9 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#define SCREEN_WIDTH 128
+#define SCREEN_PAGES 8
+
 #include <avr/io.h>
 
 void oled_command(uint8_t cmd);
