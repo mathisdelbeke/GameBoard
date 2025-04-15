@@ -1,12 +1,16 @@
 #include "display.h"
-#include "I2C_master.h"
-#include <util/delay.h>
+
+#include "uart.h"
 
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
+#define SCREEN_WIDTH 128
+#define SCREEN_PAGES 8
+#define CHAR_WIDTH 5
+#define CURSOR_X (SCREEN_WIDTH - 10)
 
 // Each char is represented by 5 columns and 7 rows of pixels
 // Each byte below represents a column of 7 vertical pixels
-const uint8_t font5x7[][5] = {
+const uint8_t font5x7[][CHAR_WIDTH] = {
     {0x00,0x00,0x00,0x00,0x00}, // 32 space 
     {0x00,0x00,0x5F,0x00,0x00}, // 33 !
     {0x00,0x07,0x00,0x07,0x00}, // 34 "
@@ -104,7 +108,8 @@ const uint8_t font5x7[][5] = {
     {0x10,0x08,0x08,0x10,0x08}, //126 ~
     {0x00,0x06,0x09,0x09,0x06}, //127 (DEL - smiley fallback)
   };
-  
+
+static const uint8_t cursor[] = {0x08,0x1C,0x22,0x08,0x08};         // "-----"
 
 void oled_command(uint8_t cmd) {
     i2c_start();
@@ -123,6 +128,8 @@ void oled_send_data(uint8_t data) {
 }
 
 void oled_init() {
+    i2c_init();
+
     oled_command(0xAE); // Display OFF
     oled_command(0xD5); // Set Display Clock Divide Ratio/Oscillator Frequency
     oled_command(0x80);
@@ -146,6 +153,19 @@ void oled_init() {
     oled_command(0xA4); // Entire Display ON (A4: Resume to RAM content display)
     oled_command(0xA6); // Set Normal Display Mode
     oled_command(0xAF); // Display ON
+
+    oled_fill(0x00);
+}
+
+void oled_fill(uint8_t color) {
+    for (uint8_t page = 0; page < SCREEN_PAGES; page++) {
+        oled_command(0xB0 + page); // Set page address
+        oled_command(0x02);        // Lower byte of column address
+        oled_command(0x10);        // Upper byte of column address
+        for (uint8_t i = 0; i < SCREEN_WIDTH; i++) {
+            oled_send_data(color);
+        }
+    }
 }
 
 // OLED (128x64) is devided in 8 pages, each 128 pixels wide and 8 tall
@@ -160,7 +180,7 @@ void oled_set_cursor(uint8_t x, uint8_t page) {
 
 void oled_write_char(char c) {
     if (c < 32 || c > 127) c = '?';         // First 32 ASCIIs are not-printable
-    for (uint8_t i = 0; i < 5; i++) {       // 5 columns per char
+    for (uint8_t i = 0; i < CHAR_WIDTH; i++) {       // 5 columns per char
         oled_send_data(font5x7[c - 32][i]); // Get the byte that represents column
     }
     oled_send_data(0x00);  // spacing
@@ -172,28 +192,32 @@ void oled_write_string(const char* str) {
     }
 }
 
-void oled_fill(uint8_t color) {
-    for (uint8_t page = 0; page < SCREEN_PAGES; page++) {
-        oled_command(0xB0 + page); // Set page address
-        oled_command(0x02);        // Lower byte of column address
-        oled_command(0x10);        // Upper byte of column address
-        for (uint8_t i = 0; i < SCREEN_WIDTH; i++) {
-            oled_send_data(color);
-        }
+void oled_draw_cursor(uint8_t prev_page, uint8_t new_page) {
+    oled_erase_cursor(prev_page);
+    oled_set_cursor(CURSOR_X, new_page);
+    for (uint8_t i = 0; i < sizeof(cursor); i++) {
+        oled_send_data(cursor[i]);
     }
 }
 
-/*
-int main() {
-    i2c_init();
-    oled_init();
-    oled_fill(0x00);    // Clear screen
-    oled_set_cursor(0, 0);
-    oled_write_string("Hello!");
-    oled_set_cursor(0, 1);
-    oled_write_string("Hello!");
-    while (1) {
-        
+void oled_erase_cursor(uint8_t page) {
+    oled_set_cursor(CURSOR_X, page);
+    for (uint8_t i = 0; i < sizeof(cursor); i++) {
+        oled_send_data(0x00);
     }
 }
-*/
+
+void oled_draw_user(User user) {
+    oled_erase_user(user.old_pos);
+    oled_set_cursor(user.pos.x, user.pos.y);
+    for (uint8_t i = 0; i < USER_WIDTH; i++) {
+        oled_send_data(user.shape[i]);
+    }
+}
+
+void oled_erase_user(Pos user_pos) {
+    oled_set_cursor(user_pos.x, user_pos.y);
+    for (uint8_t i = 0; i < USER_WIDTH; i++) {
+        oled_send_data(0x00);
+    } 
+}
