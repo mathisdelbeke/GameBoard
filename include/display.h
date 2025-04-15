@@ -21,5 +21,6 @@ void oled_draw_cursor(uint8_t prev_page, uint8_t page);
 void oled_erase_cursor(uint8_t prev_page);
 void oled_draw_user(User user);
 void oled_erase_user(Pos user_pos);
+void draw_rocks(Rock rocks[]);
 
 #endif

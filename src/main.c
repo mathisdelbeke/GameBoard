@@ -19,7 +19,7 @@ void init_peripherals() {
 void show_menu() {
     oled_draw_cursor(prev_selected_option, selected_option);
     oled_set_cursor(0, 0);
-    oled_write_string("Start Tetris");
+    oled_write_string("Start Space Invader");
     oled_set_cursor(0, 1);
     oled_write_string("Other thing");
     oled_set_cursor(0, 2);
@@ -35,8 +35,11 @@ void update_menu() {
         oled_draw_cursor(prev_selected_option, selected_option);
     }
     else if (bttns_states & (1 << BTTN2)) {
-        if (selected_option == SPACE_INVADER)
-            space_invader_start();
+        if (selected_option == SPACE_INVADER) {
+            play_space_invader();
+            oled_fill(0x00);        // If space invader is done
+            show_menu();
+        }
     }
 }
 
@@ -46,6 +49,6 @@ int main() {
 
     while(1) {
         update_menu();
-        _delay_ms(100);
+        //_delay_ms(100);
     }
 }

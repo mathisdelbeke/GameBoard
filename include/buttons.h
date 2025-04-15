@@ -7,8 +7,10 @@
 #define BTTN4 3
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 void bttns_init();
 uint8_t bttns_read();
+void init_debounce_timer();
 
 #endif

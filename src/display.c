@@ -220,3 +220,7 @@ void oled_erase_user(Pos user_pos) {
         oled_send_data(0x00);
     } 
 }
+
+void draw_rocks(Rock rocks[]) {
+    
+}
