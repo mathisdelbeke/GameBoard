@@ -3,7 +3,6 @@
 #include "uart.h"
 
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
-#define SCREEN_WIDTH 128
 #define SCREEN_PAGES 8
 #define CHAR_WIDTH 5
 #define CURSOR_X (SCREEN_WIDTH - 10)

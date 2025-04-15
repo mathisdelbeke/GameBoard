@@ -1,6 +1,8 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#define SCREEN_WIDTH 128
+
 #include "I2C_master.h"
 #include "space_invader.h"
 #include <util/delay.h>
