@@ -1,1 +1,0 @@
-Display holds cursor shape, perhaps a menu.c file
