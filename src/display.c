@@ -1,7 +1,5 @@
 #include "display.h"
 
-#include "uart.h"
-
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
 #define CHAR_WIDTH 5
 #define CURSOR_X (SCREEN_WIDTH - 10)
@@ -107,7 +105,7 @@ const uint8_t font5x7[][CHAR_WIDTH] = {
     {0x00,0x06,0x09,0x09,0x06}, //127 (DEL - smiley fallback)
   };
 
-static const uint8_t cursor[] = {0x08,0x1C,0x22,0x08,0x08};         // "-----"
+static const uint8_t cursor[] = {0x08,0x1C,0x22,0x08,0x08}; 
 
 void oled_command(uint8_t cmd) {
     i2c_start();
@@ -223,23 +221,23 @@ void oled_erase_user(Pos user_pos) {
 void oled_draw_rock(Rock rock) {
     oled_erase_rock(rock);
     oled_set_cursor(rock.pos.x, rock.pos.y);
-    for (uint8_t i = 0; i < rock.hole_pos; i++) {
+    for (uint8_t i = 0; i < rock.hole_x; i++) {
         oled_send_data(0xFF);
     }
-    oled_set_cursor((rock.hole_pos + ROCK_HOLE), rock.pos.y);
-    for (uint8_t i = (rock.hole_pos + ROCK_HOLE); i < ROCK_WIDTH; i++) {
+    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.pos.y);
+    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
         oled_send_data(0xFF);
     }
 }
 
 void oled_erase_rock(Rock rock) {
     oled_set_cursor(rock.old_pos.x, rock.old_pos.y);
-    for (uint8_t i = 0; i < rock.hole_pos; i++) {
+    for (uint8_t i = 0; i < rock.hole_x; i++) {
         oled_send_data(0x00);
     }
 
-    oled_set_cursor((rock.hole_pos + ROCK_HOLE), rock.old_pos.y);
-    for (uint8_t i = (rock.hole_pos + ROCK_HOLE); i < ROCK_WIDTH; i++) {
+    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.old_pos.y);
+    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
         oled_send_data(0x00);
     }
 }

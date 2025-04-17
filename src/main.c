@@ -1,7 +1,7 @@
 #include "buttons.h"
 #include "uart.h"
 #include "display.h"
-#include "space_invader.h"
+#include "gap_rush.h"
 #include <util/delay.h>
 
 #define SPACE_INVADER 0
@@ -36,8 +36,8 @@ void update_menu() {
     }
     else if (bttns_states & (1 << BTTN2)) {
         if (selected_option == SPACE_INVADER) {
-            play_space_invader();
-            oled_fill(0x00);        // If space invader is done
+            play_gap_rush();
+            oled_fill(0x00);        // If game is done
             show_menu();
         }
     }

@@ -5,7 +5,7 @@
 #define SCREEN_PAGES 8
 
 #include "I2C_master.h"
-#include "space_invader.h"
+#include "gap_rush.h"
 #include <util/delay.h>
 #include <avr/io.h>
 
