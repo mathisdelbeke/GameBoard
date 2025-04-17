@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <string.h>
+#include <stdlib.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
@@ -28,11 +29,11 @@ typedef struct {
 } Rock;
 
 void play_gap_rush();
-static void init_game();
-static void generate_rock();
-static void update_user();
-static void update_rock();
-static void update_level();
-static void check_collision();
+void init_game();
+void generate_rock();
+void update_user();
+void update_rock();
+void update_level();
+void check_collision();
 
 #endif

@@ -3,8 +3,6 @@
 #include "buttons.h"
 #include "rng.h"
 
-#include "uart.h"
-
 // Makes (8 x 8 pixels) shape on the bottom of screen
 static User user = {{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, .old_pos = {0, (SCREEN_PAGES - 1)}, .pos = {0, (SCREEN_PAGES - 1)}};
 static Rock rock;
@@ -27,7 +25,7 @@ void play_gap_rush() {
     }
 }
 
-static void init_game() {
+void init_game() {
     oled_fill(0x00);                            // Clear oled
     oled_draw_user(user);
     rng_seed();                                 // Seed the random generator
@@ -41,13 +39,13 @@ static void init_game() {
     TIMSK0 |= (1 << OCIE0A);                    // Enable Timer0 Compare Match A interrupt
 }
 
-static void generate_rock() {
+void generate_rock() {
     uint8_t random_x1 = rng_rand_range((SCREEN_WIDTH - ROCK_HOLE_SIZE));       
     rock = (Rock){ .hole_x = random_x1, .old_pos = {0,0}, .pos = {0,0} };   // Rock at the top of screen, with hole in it
     oled_draw_rock(rock);
 }
 
-static void update_user() {
+void update_user() {
     bttns_states = bttns_read();            
     if (bttns_states & (1 << BTTN1)) {
         user.old_pos = user.pos;
@@ -66,7 +64,7 @@ static void update_user() {
     }
 }
 
-static void update_rock() {
+void update_rock() {
     if (rock.pos.y == SCREEN_PAGES) {               // If rock at bottom
         check_collision();          
         oled_erase_rock(rock);
@@ -81,14 +79,14 @@ static void update_rock() {
     rock_timer_hit = 0;                             // Reset time to render
 }
 
-static void update_level() {
+void update_level() {
     lines_cleared++;    
     if (lines_cleared % lines_per_level == 0) {     // If lines per level are cleared, increase difficulty
         rock_drop_delay--;
     }
 }
 
-static void check_collision() {
+void check_collision() {
     if ((user.pos.x < rock.hole_x) || ((user.pos.x + USER_WIDTH) > (rock.hole_x + ROCK_HOLE_SIZE))) {
         char lines_cleared_buffer[4];                                       // Max 3 digits + null terminator
         oled_fill(0x00);                                                    // Clear oled

@@ -6,7 +6,7 @@
 
 // Each char is represented by 5 columns and 7 rows of pixels
 // Each byte below represents a column of 7 vertical pixels
-const uint8_t font5x7[][CHAR_WIDTH] = {
+static const uint8_t font5x7[][CHAR_WIDTH] = {
     {0x00,0x00,0x00,0x00,0x00}, // 32 space 
     {0x00,0x00,0x5F,0x00,0x00}, // 33 !
     {0x00,0x07,0x00,0x07,0x00}, // 34 "
@@ -197,16 +197,16 @@ void oled_draw_cursor(uint8_t prev_page, uint8_t new_page) {
 }
 
 void oled_erase_cursor(uint8_t page) {
-    oled_set_cursor(CURSOR_X, page);
-    for (uint8_t i = 0; i < sizeof(cursor); i++) {
-        oled_send_data(0x00);
+    oled_set_cursor(CURSOR_X, page);                    
+    for (uint8_t i = 0; i < sizeof(cursor); i++) { 
+        oled_send_data(0x00);                           // Clear pixel
     }
 }
 
 void oled_draw_user(User user) {
-    oled_erase_user(user.old_pos);
+    oled_erase_user(user.old_pos);                      // Erase old pixels first
     oled_set_cursor(user.pos.x, user.pos.y);
-    for (uint8_t i = 0; i < USER_WIDTH; i++) {
+    for (uint8_t i = 0; i < USER_WIDTH; i++) {          // Draw the shape of user
         oled_send_data(user.shape[i]);
     }
 }
@@ -221,10 +221,10 @@ void oled_erase_user(Pos user_pos) {
 void oled_draw_rock(Rock rock) {
     oled_erase_rock(rock);
     oled_set_cursor(rock.pos.x, rock.pos.y);
-    for (uint8_t i = 0; i < rock.hole_x; i++) {
+    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Draw 8 pixels vertical until the hole is met
         oled_send_data(0xFF);
     }
-    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.pos.y);
+    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.pos.y);            // Restart after the hole, so user isn't erased
     for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
         oled_send_data(0xFF);
     }
@@ -232,12 +232,12 @@ void oled_draw_rock(Rock rock) {
 
 void oled_erase_rock(Rock rock) {
     oled_set_cursor(rock.old_pos.x, rock.old_pos.y);
-    for (uint8_t i = 0; i < rock.hole_x; i++) {
+    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Clear 8 pixels vertical until the hole is met
         oled_send_data(0x00);
     }
 
     oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.old_pos.y);
-    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
+    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) { // Restart after the hole, so user isn't erased
         oled_send_data(0x00);
     }
 }

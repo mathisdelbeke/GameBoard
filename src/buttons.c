@@ -43,7 +43,7 @@ uint8_t bttns_read() {
     if (!(PINB & (1 << BTTN3_PIN))) bttns_states |= (1 << BTTN3);
     if (!(PINC & (1 << BTTN4_PIN))) bttns_states |= (1 << BTTN4);
 
-    debounce_flag = 0;
+    debounce_flag = 0;                      
     return bttns_states;
 }
 

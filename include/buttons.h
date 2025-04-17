@@ -10,7 +10,7 @@
 #include <avr/interrupt.h>
 
 void bttns_init();
-uint8_t bttns_read();
 void init_debounce_timer();
+uint8_t bttns_read();
 
 #endif
