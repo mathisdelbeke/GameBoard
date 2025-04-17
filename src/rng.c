@@ -10,11 +10,11 @@ void rng_seed() {
 }
 
 // Simple LCG: Xn+1 = (a * Xn + c) % m
-uint16_t rng_rand(void) {
+uint16_t rng_rand() {
     rng_state = (1103515245 * rng_state + 12345);
     return (rng_state >> 8) & 0x7FFF;  // 15-bit result
 }
 
-uint8_t rng_rand_range(void) {
-    return (rng_rand() % 129) - ROCKS_WIDTH;  // 0 to 128 inclusive
+uint8_t rng_rand_range(uint8_t upper_limit) {
+    return (rng_rand() % upper_limit); 
 }

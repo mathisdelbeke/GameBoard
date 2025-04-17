@@ -49,6 +49,5 @@ int main() {
 
     while(1) {
         update_menu();
-        //_delay_ms(100);
     }
 }

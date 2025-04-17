@@ -3,7 +3,6 @@
 #include "uart.h"
 
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
-#define SCREEN_PAGES 8
 #define CHAR_WIDTH 5
 #define CURSOR_X (SCREEN_WIDTH - 10)
 
@@ -221,6 +220,26 @@ void oled_erase_user(Pos user_pos) {
     } 
 }
 
-void draw_rocks(Rock rocks[]) {
-    
+void oled_draw_rock(Rock rock) {
+    oled_erase_rock(rock);
+    oled_set_cursor(rock.pos.x, rock.pos.y);
+    for (uint8_t i = 0; i < rock.hole_pos; i++) {
+        oled_send_data(0xFF);
+    }
+    oled_set_cursor((rock.hole_pos + ROCK_HOLE), rock.pos.y);
+    for (uint8_t i = (rock.hole_pos + ROCK_HOLE); i < ROCK_WIDTH; i++) {
+        oled_send_data(0xFF);
+    }
+}
+
+void oled_erase_rock(Rock rock) {
+    oled_set_cursor(rock.old_pos.x, rock.old_pos.y);
+    for (uint8_t i = 0; i < rock.hole_pos; i++) {
+        oled_send_data(0x00);
+    }
+
+    oled_set_cursor((rock.hole_pos + ROCK_HOLE), rock.old_pos.y);
+    for (uint8_t i = (rock.hole_pos + ROCK_HOLE); i < ROCK_WIDTH; i++) {
+        oled_send_data(0x00);
+    }
 }

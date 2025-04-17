@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 #define SCREEN_WIDTH 128
+#define SCREEN_PAGES 8
 
 #include "I2C_master.h"
 #include "space_invader.h"
@@ -21,6 +22,7 @@ void oled_draw_cursor(uint8_t prev_page, uint8_t page);
 void oled_erase_cursor(uint8_t prev_page);
 void oled_draw_user(User user);
 void oled_erase_user(Pos user_pos);
-void draw_rocks(Rock rocks[]);
+void oled_draw_rock(Rock rock);
+void oled_erase_rock(Rock rock);
 
 #endif
