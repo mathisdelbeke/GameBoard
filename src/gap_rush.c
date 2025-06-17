@@ -13,6 +13,17 @@ static const uint8_t lines_per_level = 3;       // Lines to clear before increas
 static volatile uint8_t render_tick_count = 0;  // Timer is too fast, count ticks to 'rock_drop_delay' before rendering
 static volatile uint8_t rock_timer_hit = 0;     // When 'render_tick_count' = 'rock_drop_delay', time to rerender rock
 
+static void init_game();
+static void generate_rock();
+static void update_user();
+static void update_rock();
+static void check_collision();
+static void update_level();
+static void draw_user();
+static void erase_user();
+static void draw_rock();
+static void erase_rock();
+
 void play_gap_rush() {
     init_game();
     game_active = 1;
@@ -22,7 +33,7 @@ void play_gap_rush() {
     }
 }
 
-void init_game() {
+static void init_game() {
     oled_fill(0x00);                            // Clear oled
     draw_user(user);
     rng_seed();                                 // Seed the random generator

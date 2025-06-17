@@ -32,16 +32,5 @@ typedef struct {
 } Rock;
 
 void play_gap_rush();
-void init_game();
-void generate_rock();
-void update_user();
-void update_rock();
-void check_collision();
-void update_level();
-
-void draw_user();
-void erase_user();
-void draw_rock();
-void erase_rock();
 
 #endif
