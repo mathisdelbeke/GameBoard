@@ -104,21 +104,7 @@ static const uint8_t font5x7[][CHAR_WIDTH] = {
     {0x00,0x06,0x09,0x09,0x06}, //127 (DEL - smiley fallback)
   };
 
-void oled_command(uint8_t cmd) {
-    i2c_start();
-    i2c_write(0x3C << 1);  // Slave Address + Write
-    i2c_write(0x00);       // Control Byte (Command Mode)
-    i2c_write(cmd);
-    i2c_stop();
-}
-
-void oled_send_data(uint8_t data) {
-    i2c_start();
-    i2c_write(0x3C << 1);  // Slave Address + Write
-    i2c_write(0x40);       // Control Byte (Data Mode)
-    i2c_write(data);
-    i2c_stop();
-}
+static void oled_command(uint8_t cmd);
 
 void oled_init() {
     i2c_init();
@@ -148,6 +134,22 @@ void oled_init() {
     oled_command(0xAF); // Display ON
 
     oled_fill(0x00);
+}
+
+static void oled_command(uint8_t cmd) {
+    i2c_start();
+    i2c_write(0x3C << 1);  // Slave Address + Write
+    i2c_write(0x00);       // Control Byte (Command Mode)
+    i2c_write(cmd);
+    i2c_stop();
+}
+
+void oled_send_data(uint8_t data) {
+    i2c_start();
+    i2c_write(0x3C << 1);  // Slave Address + Write
+    i2c_write(0x40);       // Control Byte (Data Mode)
+    i2c_write(data);
+    i2c_stop();
 }
 
 void oled_fill(uint8_t color) {
