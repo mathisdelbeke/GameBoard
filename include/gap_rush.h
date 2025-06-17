@@ -3,7 +3,7 @@
 
 #define USER_WIDTH 8
 #define ROCK_WIDTH 128         
-#define ROCK_HOLE_SIZE (USER_WIDTH * 2)
+#define ROCK_HOLE_SIZE ((USER_WIDTH * 2) + 1)
 
 #include <avr/io.h>
 #include <string.h>

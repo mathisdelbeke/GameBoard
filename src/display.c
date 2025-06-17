@@ -2,7 +2,6 @@
 
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
 #define CHAR_WIDTH 5
-#define CURSOR_X (SCREEN_WIDTH - 10)
 
 // Each char is represented by 5 columns and 7 rows of pixels
 // Each byte below represents a column of 7 vertical pixels
@@ -105,8 +104,6 @@ static const uint8_t font5x7[][CHAR_WIDTH] = {
     {0x00,0x06,0x09,0x09,0x06}, //127 (DEL - smiley fallback)
   };
 
-static const uint8_t cursor[] = {0x08,0x1C,0x22,0x08,0x08}; 
-
 void oled_command(uint8_t cmd) {
     i2c_start();
     i2c_write(0x3C << 1);  // Slave Address + Write
@@ -185,21 +182,6 @@ void oled_write_char(char c) {
 void oled_write_string(const char* str) {
     while (*str) {
         oled_write_char(*str++);   // print char and move to next
-    }
-}
-
-void oled_draw_cursor(uint8_t prev_page, uint8_t new_page) {
-    oled_erase_cursor(prev_page);
-    oled_set_cursor(CURSOR_X, new_page);
-    for (uint8_t i = 0; i < sizeof(cursor); i++) {
-        oled_send_data(cursor[i]);
-    }
-}
-
-void oled_erase_cursor(uint8_t page) {
-    oled_set_cursor(CURSOR_X, page);                    
-    for (uint8_t i = 0; i < sizeof(cursor); i++) { 
-        oled_send_data(0x00);                           // Clear pixel
     }
 }
 

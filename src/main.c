@@ -4,11 +4,14 @@
 #include "gap_rush.h"
 #include <util/delay.h>
 
-#define SPACE_INVADER 0
+#define NUM_GAMES 2
+#define GAP_RUSH 0
+
+static const uint8_t INDICATOR[] = {0x08,0x1C,0x22,0x08,0x08}; 
+static const uint8_t INDICATOR_POS_X = (SCREEN_WIDTH - 10);
 
 static uint8_t selected_option = 0;
 static uint8_t prev_selected_option = 0;
-static uint8_t bttns_states;
 
 void init_peripherals() {
     bttns_init();
@@ -16,10 +19,25 @@ void init_peripherals() {
     oled_init();
 }
 
+void erase_indicator() {
+    oled_set_cursor(INDICATOR_POS_X, prev_selected_option);                    
+    for (uint8_t i = 0; i < sizeof(INDICATOR); i++) { 
+        oled_send_data(0x00);                           // Clear pixel
+    }
+}
+
+void draw_indicator() {
+    erase_indicator();
+    oled_set_cursor(INDICATOR_POS_X, selected_option);
+    for (uint8_t i = 0; i < sizeof(INDICATOR); i++) {
+        oled_send_data(INDICATOR[i]);
+    }
+}
+
 void show_menu() {
-    oled_draw_cursor(prev_selected_option, selected_option);
+    draw_indicator();
     oled_set_cursor(0, 0);
-    oled_write_string("Start Space Invader");
+    oled_write_string("Start Gap Rush");
     oled_set_cursor(0, 1);
     oled_write_string("Other thing");
     oled_set_cursor(0, 2);
@@ -27,15 +45,15 @@ void show_menu() {
 }
 
 void update_menu() {
-    bttns_states = bttns_read();
+    uint8_t bttns_states = bttns_read();
     if (bttns_states & (1 << BTTN1)) {
         prev_selected_option = selected_option;
-        if (selected_option < 2) selected_option++;    
+        if (selected_option < NUM_GAMES) selected_option++;    
         else selected_option = 0;
-        oled_draw_cursor(prev_selected_option, selected_option);
+        draw_indicator();
     }
     else if (bttns_states & (1 << BTTN2)) {
-        if (selected_option == SPACE_INVADER) {
+        if (selected_option == GAP_RUSH) {
             play_gap_rush();
             oled_fill(0x00);        // If game is done
             show_menu();
