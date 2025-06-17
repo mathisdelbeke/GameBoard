@@ -12,20 +12,20 @@ static const uint8_t INDICATOR_POS_X = (SCREEN_WIDTH - 10);
 static uint8_t selected_option = 0;
 static uint8_t prev_selected_option = 0;
 
-void init_peripherals() {
+static void init_peripherals() {
     bttns_init();
     uart_init(9600);
     oled_init();
 }
 
-void erase_indicator() {
+static void erase_indicator() {
     oled_set_cursor(INDICATOR_POS_X, prev_selected_option);                    
     for (uint8_t i = 0; i < sizeof(INDICATOR); i++) { 
         oled_send_data(0x00);                           // Clear pixel
     }
 }
 
-void draw_indicator() {
+static void draw_indicator() {
     erase_indicator();
     oled_set_cursor(INDICATOR_POS_X, selected_option);
     for (uint8_t i = 0; i < sizeof(INDICATOR); i++) {
@@ -33,7 +33,7 @@ void draw_indicator() {
     }
 }
 
-void show_menu() {
+static void show_menu() {
     draw_indicator();
     oled_set_cursor(0, 0);
     oled_write_string("Start Gap Rush");
@@ -43,7 +43,7 @@ void show_menu() {
     oled_write_string("Other thing");
 }
 
-void update_menu() {
+static void update_menu() {
     uint8_t bttns_states = bttns_read();
     if (bttns_states & (1 << BTTN1)) {
         prev_selected_option = selected_option;
