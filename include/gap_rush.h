@@ -6,10 +6,13 @@
 #define ROCK_HOLE_SIZE ((USER_WIDTH * 2) + 1)
 
 #include <avr/io.h>
-#include <string.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+
+#include "display.h"
+#include "buttons.h"
+#include "rng.h"
 
 typedef struct {
     uint8_t x;
@@ -33,7 +36,12 @@ void init_game();
 void generate_rock();
 void update_user();
 void update_rock();
-void update_level();
 void check_collision();
+void update_level();
+
+void draw_user();
+void erase_user();
+void draw_rock();
+void erase_rock();
 
 #endif

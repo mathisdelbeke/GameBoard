@@ -1,8 +1,8 @@
 #include "display.h"
 
 // OLED used: AZDelivery 1.3 inch OLED SSH1106 128 x 64 pixel
-#define CHAR_WIDTH 5
 
+#define CHAR_WIDTH 5
 // Each char is represented by 5 columns and 7 rows of pixels
 // Each byte below represents a column of 7 vertical pixels
 static const uint8_t font5x7[][CHAR_WIDTH] = {
@@ -182,44 +182,5 @@ void oled_write_char(char c) {
 void oled_write_string(const char* str) {
     while (*str) {
         oled_write_char(*str++);   // print char and move to next
-    }
-}
-
-void oled_draw_user(User user) {
-    oled_erase_user(user.old_pos);                      // Erase old pixels first
-    oled_set_cursor(user.pos.x, user.pos.y);
-    for (uint8_t i = 0; i < USER_WIDTH; i++) {          // Draw the shape of user
-        oled_send_data(user.shape[i]);
-    }
-}
-
-void oled_erase_user(Pos user_pos) {
-    oled_set_cursor(user_pos.x, user_pos.y);
-    for (uint8_t i = 0; i < USER_WIDTH; i++) {
-        oled_send_data(0x00);
-    } 
-}
-
-void oled_draw_rock(Rock rock) {
-    oled_erase_rock(rock);
-    oled_set_cursor(rock.pos.x, rock.pos.y);
-    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Draw 8 pixels vertical until the hole is met
-        oled_send_data(0xFF);
-    }
-    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.pos.y);            // Restart after the hole, so user isn't erased
-    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
-        oled_send_data(0xFF);
-    }
-}
-
-void oled_erase_rock(Rock rock) {
-    oled_set_cursor(rock.old_pos.x, rock.old_pos.y);
-    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Clear 8 pixels vertical until the hole is met
-        oled_send_data(0x00);
-    }
-
-    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.old_pos.y);
-    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) { // Restart after the hole, so user isn't erased
-        oled_send_data(0x00);
     }
 }

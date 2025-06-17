@@ -2,7 +2,6 @@
 #include "uart.h"
 #include "display.h"
 #include "gap_rush.h"
-#include <util/delay.h>
 
 #define NUM_GAMES 2
 #define GAP_RUSH 0

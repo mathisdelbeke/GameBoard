@@ -1,7 +1,4 @@
 #include "gap_rush.h"
-#include "display.h"
-#include "buttons.h"
-#include "rng.h"
 
 // Makes (8 x 8 pixels) shape on the bottom of screen
 static User user = {{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, .old_pos = {0, (SCREEN_PAGES - 1)}, .pos = {0, (SCREEN_PAGES - 1)}};
@@ -27,7 +24,7 @@ void play_gap_rush() {
 
 void init_game() {
     oled_fill(0x00);                            // Clear oled
-    oled_draw_user(user);
+    draw_user(user);
     rng_seed();                                 // Seed the random generator
     generate_rock();
     lines_cleared = 0;
@@ -42,7 +39,7 @@ void init_game() {
 void generate_rock() {
     uint8_t random_x1 = rng_rand_range((SCREEN_WIDTH - ROCK_HOLE_SIZE));       
     rock = (Rock){ .hole_x = random_x1, .old_pos = {0,0}, .pos = {0,0} };   // Rock at the top of screen, with hole in it
-    oled_draw_rock(rock);
+    draw_rock(rock);
 }
 
 void update_user() {
@@ -51,13 +48,13 @@ void update_user() {
         user.old_pos = user.pos;
         if (user.pos.x <= 0) user.pos.x = 0;        // Make sure user stays on screen
         else user.pos.x -= USER_WIDTH;              // Else move to left, 1 width at a time
-        oled_draw_user(user);
+        draw_user(user);
     }
     else if (bttns_states & (1 << BTTN2)) {
         user.old_pos = user.pos;
         if (user.pos.x >= SCREEN_WIDTH - USER_WIDTH) user.pos.x = SCREEN_WIDTH - USER_WIDTH; // Make sure user stays on screen
         else user.pos.x += USER_WIDTH;                                                       // Else move to right
-        oled_draw_user(user);
+        draw_user(user);
     }
     else if (bttns_states & (1 << BTTN3)) {         // Exit game before ending
         game_active = 0;
@@ -67,23 +64,16 @@ void update_user() {
 void update_rock() {
     if (rock.pos.y == SCREEN_PAGES) {               // If rock at bottom
         check_collision();          
-        oled_erase_rock(rock);
+        erase_rock(rock);
         generate_rock();                            // Make new rock
         update_level();                             
     }
     else {
         rock.old_pos = rock.pos;
         rock.pos.y++;                               // Move rock to bottom
-        oled_draw_rock(rock);
+        draw_rock(rock);
     }
     rock_timer_hit = 0;                             // Reset time to render
-}
-
-void update_level() {
-    lines_cleared++;    
-    if (lines_cleared % lines_per_level == 0) {     // If lines per level are cleared, increase difficulty
-        rock_drop_delay--;
-    }
 }
 
 void check_collision() {
@@ -99,10 +89,56 @@ void check_collision() {
     }
 }
 
+void update_level() {
+    lines_cleared++;    
+    if (lines_cleared % lines_per_level == 0) {     // If lines per level are cleared, increase difficulty
+        rock_drop_delay--;
+    }
+}
+
 ISR(TIMER0_COMPA_vect) {                    
     render_tick_count++;
     if (render_tick_count >= rock_drop_delay) {    // Count to rock_drop_delay before rerendering rock 
         render_tick_count = 0;
         rock_timer_hit = 1;
+    }
+}
+
+void draw_user() {
+    erase_user(user.old_pos);                      // Erase old pixels first
+    oled_set_cursor(user.pos.x, user.pos.y);
+    for (uint8_t i = 0; i < USER_WIDTH; i++) {          // Draw the shape of user
+        oled_send_data(user.shape[i]);
+    }
+}
+
+void erase_user() {
+    oled_set_cursor(user.old_pos.x, user.old_pos.y);
+    for (uint8_t i = 0; i < USER_WIDTH; i++) {
+        oled_send_data(0x00);
+    } 
+}
+
+void draw_rock() {
+    erase_rock(rock);
+    oled_set_cursor(rock.pos.x, rock.pos.y);
+    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Draw 8 pixels vertical until the hole is met
+        oled_send_data(0xFF);
+    }
+    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.pos.y);            // Restart after the hole, so user isn't erased
+    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) {
+        oled_send_data(0xFF);
+    }
+}
+
+void erase_rock() {
+    oled_set_cursor(rock.old_pos.x, rock.old_pos.y);
+    for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Clear 8 pixels vertical until the hole is met
+        oled_send_data(0x00);
+    }
+
+    oled_set_cursor((rock.hole_x + ROCK_HOLE_SIZE), rock.old_pos.y);
+    for (uint8_t i = (rock.hole_x + ROCK_HOLE_SIZE); i < ROCK_WIDTH; i++) { // Restart after the hole, so user isn't erased
+        oled_send_data(0x00);
     }
 }
