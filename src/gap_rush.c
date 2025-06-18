@@ -1,5 +1,7 @@
 #include "gap_rush.h"
 
+#define DEBOUNCE_DELAY_MS 100
+
 // Makes (8 x 8 pixels) shape on the bottom of screen
 static User user = {{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, .old_pos = {0, (SCREEN_PAGES - 1)}, .pos = {0, (SCREEN_PAGES - 1)}};
 static Rock rock;
@@ -34,6 +36,7 @@ void play_gap_rush() {
 }
 
 static void init_game() {
+    bttns_init(DEBOUNCE_DELAY_MS);
     oled_fill(0x00);                            // Clear oled
     draw_user(user);
     rng_seed();                                 // Seed the random generator

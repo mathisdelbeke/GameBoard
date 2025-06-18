@@ -8,6 +8,8 @@
 #define GAP_RUSH 0
 #define MEMORY_TEST 1
 
+#define DEBOUNCE_DELAY_MS 150
+
 static const uint8_t INDICATOR[] = {0x08,0x1C,0x22,0x08,0x08}; 
 static const uint8_t INDICATOR_POS_X = (SCREEN_WIDTH - 10);
 
@@ -15,7 +17,7 @@ static uint8_t selected_option = 0;
 static uint8_t prev_selected_option = 0;
 
 static void init_peripherals() {
-    bttns_init();
+    bttns_init(DEBOUNCE_DELAY_MS);
     uart_init(9600);
     oled_init();
 }

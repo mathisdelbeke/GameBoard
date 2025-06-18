@@ -8,9 +8,9 @@
 static uint8_t bttns_states = 0;
 static volatile uint8_t debounce_flag = 1; 
 
-static void init_debounce_timer();
+static void init_debounce_timer(uint8_t debounce_time_ms);
 
-void bttns_init() {
+void bttns_init(uint8_t debounce_time_ms) {
     // Set pins as input
     DDRD &= ~(1 << BTTN1_PIN);
     DDRB &= ~(1 << BTTN3_PIN);
@@ -21,14 +21,14 @@ void bttns_init() {
     PORTB |= (1 << BTTN3_PIN);
     PORTC |= ((1 << BTTN2_PIN) | (1 << BTTN4_PIN));
 
-    init_debounce_timer();
+    init_debounce_timer(debounce_time_ms);
 }
 
-static void init_debounce_timer() {
+static void init_debounce_timer(uint8_t debounce_time_ms) {
     TCCR1B |= (1 << WGM12);                 // CTC mode
     TIMSK1 |= (1 << OCIE1A);                // Interrupt compare match
     TCCR1B |= (1 << CS11) | (1 << CS10);    // Prescaler 64
-    OCR1A = 25000;                          
+    OCR1A = (debounce_time_ms * 250);       // 1 ms / 4 µs = 25000
     TCNT1 = 0;                              // reset timer
 }
 

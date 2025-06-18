@@ -4,6 +4,8 @@
 #define NO_INPUT 255
 #define ARROW_PIXEL_VALUES 16
 
+#define DEBOUNCE_DELAY_MS 150
+
 typedef enum {
     AXIS_HORIZONTAL = 0,
     AXIS_VERTICAL = 1,
@@ -56,6 +58,7 @@ void play_memory_test() {
 }
 
 static void init_game() {
+    bttns_init(DEBOUNCE_DELAY_MS);
     oled_fill(0x00);
     rng_seed();
     arrow_idx = 0;
