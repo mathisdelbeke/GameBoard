@@ -40,7 +40,7 @@ static void show_menu() {
     oled_set_cursor(0, 0);
     oled_write_string("Start Gap Rush");
     oled_set_cursor(0, 1);
-    oled_write_string("Memory Test");
+    oled_write_string("Start Memory Test");
     oled_set_cursor(0, 2);
     oled_write_string("Other thing");
 }

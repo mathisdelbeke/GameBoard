@@ -1,6 +1,7 @@
 #include "memory_test.h"
 
 #define MAX_SEQUENCE_LENGTH 5
+#define NO_INPUT 255
 #define ARROW_PIXEL_VALUES 16
 
 typedef enum {
@@ -29,43 +30,49 @@ static const uint8_t ARROWS_VERITCAL[][ARROW_PIXEL_VALUES] = {{0x80, 0xC0, 0xE0,
 
 static uint8_t game_active = 1;
 
-static Arrow arrows_sequence[MAX_SEQUENCE_LENGTH];
-static uint8_t current_sequence_idx = 0;
+static Arrow arrow_sequence[MAX_SEQUENCE_LENGTH];
+static uint8_t arrow_idx = 0;
 
 static void init_game();
-static void add_random_arrow();
-static void show_arrows_sequence();
+static void add_arrow_to_sequence();
+static void show_arrow_sequence();
+static void show_user_input_screen();
+static void read_all_user_inputs();
+static void read_user_input(uint8_t *user_axis_input, uint8_t *user_direction_input);
+static void check_user_input(uint8_t *user_axis_input, uint8_t *user_direction_input, uint8_t *num_user_inputs, uint8_t *reading);
+static void check_max_sequence_reached();
 static void draw_horizontal_arrow(Direction direction);
 static void draw_vertical_arrow(Direction direction);
 
 void play_memory_test() {
     init_game();
     while(game_active) {
-        add_random_arrow();
-        show_arrows_sequence();
-        oled_fill(0x00);
-        _delay_ms(2000);
+        add_arrow_to_sequence();
+        show_arrow_sequence();
+        show_user_input_screen();
+        read_all_user_inputs();
+        check_max_sequence_reached();
     }
 }
 
 static void init_game() {
     oled_fill(0x00);
     rng_seed();
-    current_sequence_idx = 0;
+    arrow_idx = 0;
     game_active = 1;
 }
 
-static void add_random_arrow() {
+static void add_arrow_to_sequence() {
     uint8_t random_axis_idx = rng_rand_range(2);                                                
     uint8_t random_direction_idx = rng_rand_range(2);
     Arrow random_arrow = {.axis_idx = random_axis_idx, .direction_idx = random_direction_idx};
     
-    arrows_sequence[current_sequence_idx] = random_arrow;                                     
+    arrow_sequence[arrow_idx] = random_arrow;                                     
 }
 
-static void show_arrows_sequence() {
-    for (uint8_t i = 0; i <= current_sequence_idx; i++) {
-        Arrow arrow = arrows_sequence[i];
+static void show_arrow_sequence() {
+    for (uint8_t i = 0; i <= arrow_idx; i++) {
+        Arrow arrow = arrow_sequence[i];
 
         if (arrow.axis_idx == AXIS_HORIZONTAL) {
             if (arrow.direction_idx == DIRECTION_LEFT) 
@@ -83,10 +90,70 @@ static void show_arrows_sequence() {
             _delay_ms(1000);
         }
     }
+}
 
-    if (current_sequence_idx < (MAX_SEQUENCE_LENGTH - 1)) current_sequence_idx++;               // Stop game if max sequence is reached
-    else game_active = 0;
-}   
+static void show_user_input_screen() {
+    oled_fill(0x00);
+    oled_set_cursor(0, 0);
+    oled_write_string("Repeat sequence now");
+}
+
+static void read_all_user_inputs() {
+    uint8_t num_user_inputs = 0;
+    uint8_t reading = 1;
+    while (reading) {              
+        uint8_t user_axis_input = NO_INPUT;
+        uint8_t user_direction_input = NO_INPUT;      
+        read_user_input(&user_axis_input, &user_direction_input);
+        check_user_input(&user_axis_input, &user_direction_input, &num_user_inputs, &reading);
+    }
+}
+
+static void read_user_input(uint8_t *user_axis_input, uint8_t *user_direction_input) {
+    while ((*user_axis_input == NO_INPUT) || (*user_direction_input == NO_INPUT)) {
+        uint8_t bttns_states = bttns_read();
+        if (bttns_states & (1 << BTTN1)) {
+            *user_axis_input = 0;
+            *user_direction_input = 0;
+        }
+        else if (bttns_states & (1 << BTTN2)) {
+            *user_axis_input = 0;
+            *user_direction_input = 1;
+        }
+        else if (bttns_states & (1 << BTTN3)) {
+            *user_axis_input = 1;
+            *user_direction_input = 0;
+        }
+        else if (bttns_states & (1 << BTTN4)) {
+            *user_axis_input = 1;
+            *user_direction_input = 1;
+        }
+    }
+}
+
+static void check_user_input(uint8_t *user_axis_input, uint8_t *user_direction_input, uint8_t *num_user_inputs, uint8_t *reading) {
+    Arrow correct_arrow = arrow_sequence[*num_user_inputs];
+    if ((correct_arrow.axis_idx == *user_axis_input) && (correct_arrow.direction_idx == *user_direction_input)) {
+        if (*num_user_inputs == arrow_idx) *reading = 0;                                                                                    // If full sequence repeated, stop reading
+        else                                                                                                                                // Else keep reading
+            (*num_user_inputs)++;
+    }
+    else {                                                                                                                                  // Mistake, end game
+        *reading = 0;
+        game_active = 0;
+    }
+}
+
+static void check_max_sequence_reached() {
+    if (arrow_idx < (MAX_SEQUENCE_LENGTH - 1)) arrow_idx++;                                                                                 // Stop game if max sequence is reached
+    else {
+        oled_fill(0x00);
+        oled_set_cursor(0,0);
+        oled_write_string("Max sequence reached");
+        _delay_ms(3000);
+        game_active = 0;
+    }
+}
 
 static void draw_horizontal_arrow(Direction direction) {
     oled_fill(0x00);
