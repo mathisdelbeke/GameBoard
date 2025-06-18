@@ -6,13 +6,7 @@
 
 #include "display.h"
 #include "buttons.h"
-
-typedef enum {
-    DIRECTION_LEFT = 0,
-    DIRECTION_RIGHT = 1,
-    DIRECTION_UP = 0,
-    DIRECTION_DOWN = 1
-} Direction;
+#include "rng.h"
 
 void play_memory_test();
 
