@@ -9,7 +9,7 @@
 #define BTTN3 2
 #define BTTN4 3
 
-void bttns_init(uint8_t debounce_time_ms);
+void bttns_init();
 uint8_t bttns_read();
 
 #endif
