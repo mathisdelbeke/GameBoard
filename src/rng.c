@@ -1,12 +1,23 @@
 #include "rng.h"
 
-static unsigned int rng_state = 1;
+#include "display.h"
+#include <stdlib.h>
+#include <util/delay.h>
+
+static unsigned int rng_state;
 
 void rng_seed() {
+    uint16_t seed = 0;
     ADMUX = (1 << REFS0);                               // AVcc ref  
-    ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADPS1);  // Enable + start ADC
-    while (ADCSRA & (1 << ADSC));                       // Wait for complete
-    rng_state = ADC;
+    ADCSRA = (1 << ADEN) | (1 << ADPS1);                // Enable + prescale 4
+    for (uint8_t i = 0; i < 3; i++) {                   // Take floating point samples from ADC0, ADC1, and ADC2
+        ADMUX = (1 << REFS0) | i;                       
+        _delay_ms(50);                                  // Wait for voltage on the pin and internal capacitor to settle
+        ADCSRA |= (1 << ADSC);
+        while (ADCSRA & (1 << ADSC));
+        seed ^= ADC;                                    // Mix results
+    }
+    rng_state = seed;
 }
 
 // Simple LCG: Xn+1 = (a * Xn + c) % m
