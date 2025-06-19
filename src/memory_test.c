@@ -145,6 +145,7 @@ static void check_user_input(uint8_t *user_axis_input, uint8_t *user_direction_i
 }
 
 static void check_max_sequence_reached() {
+    if (game_active == 0) return;                                                                                                           // If already over
     if (arrow_idx < (MAX_SEQUENCE_LENGTH - 1)) arrow_idx++;                                                                                 // Stop game if max sequence is reached
     else {
         oled_fill(0x00);
