@@ -141,6 +141,13 @@ static void check_user_input(uint8_t *user_axis_input, uint8_t *user_direction_i
     else {                                                                                                                                  // Mistake, end game
         *reading = 0;
         game_active = 0;
+        char txt[4];                                                                                                                        // Max 3 digits + \0
+        oled_fill(0x00);
+        oled_set_cursor(0,0);
+        oled_write_string("Level reached:");
+        oled_set_cursor(0,1);
+        oled_write_string(itoa(arrow_idx, txt, 10));
+        _delay_ms(2000);
     }
 }
 

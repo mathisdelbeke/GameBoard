@@ -2,6 +2,7 @@
 #define MEMORY_TEST_H
 
 #include <avr/io.h>
+#include <stdlib.h>
 #include <util/delay.h>
 
 #include "display.h"

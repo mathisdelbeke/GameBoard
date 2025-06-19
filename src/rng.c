@@ -1,7 +1,6 @@
 #include "rng.h"
 
 #include "display.h"
-#include <stdlib.h>
 #include <util/delay.h>
 
 static unsigned int rng_state;
