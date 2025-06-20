@@ -39,8 +39,8 @@ void play_snake() {
     while (game_active) {
         read_user_input();
         if (time_to_move) {
-            draw_snake();
             move_snake();
+            draw_snake();
         }
     }
     TCCR0B &= ~((1 << CS02) | (1 << CS00));     // Turn timer off
