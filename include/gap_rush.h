@@ -32,5 +32,6 @@ typedef struct {
 } Rock;
 
 void play_gap_rush();
+void gap_rush_timer_hit();
 
 #endif

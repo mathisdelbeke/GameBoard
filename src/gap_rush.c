@@ -31,6 +31,7 @@ void play_gap_rush() {
         update_user();                          // Reads buttons and rerenders as fast as possible
         if (rock_timer_hit) update_rock();      // If time to render is hit, rerender and check rock
     }
+    TCCR0B &= ~((1 << CS02) | (1 << CS00));     // Turn timer off
 }
 
 static void init_game() {
@@ -107,7 +108,7 @@ void update_level() {
     }
 }
 
-ISR(TIMER0_COMPA_vect) {                    
+void gap_rush_timer_hit() {
     render_tick_count++;
     if (render_tick_count >= rock_drop_delay) {    // Count to rock_drop_delay before rerendering rock 
         render_tick_count = 0;
