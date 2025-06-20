@@ -6,6 +6,7 @@
 
 #include "display.h"
 #include "buttons.h"
+#include "rng.h"
 
 void play_snake();
 void snake_timer_hit();
