@@ -25,7 +25,7 @@ static Snake snake = {.pos = {.x = 0, .y = 0}, .direction = DIRECTION_UP};
 
 static uint8_t game_active = 1;
 static volatile uint8_t timer_hit_count = 0;
-static volatile uint8_t timer_hits_till_move = 62;
+static volatile uint8_t timer_hits_till_move = 31;
 static volatile uint8_t time_to_move = 0;
 
 static void init_game();
@@ -37,11 +37,11 @@ static void read_user_input();
 void play_snake() {
     init_game();
     while (game_active) {
+        read_user_input();
         if (time_to_move) {
             draw_snake();
             move_snake();
         }
-        read_user_input();
     }
     TCCR0B &= ~((1 << CS02) | (1 << CS00));     // Turn timer off
 }
@@ -52,7 +52,7 @@ static void init_game() {
     snake.pos.y = 0;
     snake.direction = DIRECTION_RIGHT;
     timer_hit_count = 0;
-    timer_hits_till_move = 62;
+    timer_hits_till_move = 31;
     game_active = 1;
     init_move_timer();
 }
@@ -74,10 +74,18 @@ static void draw_snake() {
 
 static void read_user_input() {
     uint8_t bttns_states = bttns_read();
-    if (bttns_states & (1 << BTTN1)) snake.direction = DIRECTION_LEFT;
-    else if (bttns_states & (1 << BTTN2)) snake.direction = DIRECTION_RIGHT;
-    else if (bttns_states & (1 << BTTN3)) snake.direction = DIRECTION_UP;
-    else if (bttns_states & (1 << BTTN4)) snake.direction = DIRECTION_DOWN;
+    if (bttns_states & (1 << BTTN1)) {
+        if (snake.direction != DIRECTION_RIGHT) snake.direction = DIRECTION_LEFT;
+    }
+    else if (bttns_states & (1 << BTTN2)) {
+        if (snake.direction != DIRECTION_LEFT) snake.direction = DIRECTION_RIGHT;
+    }
+    else if (bttns_states & (1 << BTTN3)) {
+        if (snake.direction != DIRECTION_DOWN) snake.direction = DIRECTION_UP;
+    }
+    else if (bttns_states & (1 << BTTN4)) {
+        if (snake.direction != DIRECTION_UP) snake.direction = DIRECTION_DOWN;
+    }
 }
 
 static void move_snake() {
@@ -102,7 +110,7 @@ static void move_snake() {
 
 void snake_timer_hit() {
     timer_hit_count++;
-    if (timer_hit_count >= timer_hits_till_move) {    // Move delay = 16 ms * timer_hit_count
+    if (timer_hit_count >= timer_hits_till_move) {    // Move delay = 16 ms * timer_hits_till_move
         timer_hit_count = 0;
         time_to_move = 1;
     }
