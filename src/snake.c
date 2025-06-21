@@ -104,10 +104,12 @@ static void place_food() {
 }
 
 static void move_snake() {
-    Pos old_head_pos = snake.block_positions[0];
     prev_tail_pos = snake.block_positions[snake.length - 1];
     
-    // Only update head block
+    for (uint8_t i = (snake.length - 1); i > 0; i--) {
+        snake.block_positions[i] = snake.block_positions[i - 1];
+    }
+    
     if (snake.direction == DIRECTION_RIGHT) {
         if (snake.block_positions[0].x < (SCREEN_WIDTH - COLUMNS_PER_SNAKE_BLOCK)) snake.block_positions[0].x += COLUMNS_PER_SNAKE_BLOCK;
         else snake.block_positions[0].x = 0;
@@ -123,13 +125,6 @@ static void move_snake() {
     else if (snake.direction == DIRECTION_DOWN) {
         if (snake.block_positions[0].y < (SCREEN_PAGES - 1)) snake.block_positions[0].y += 1;
         else snake.block_positions[0].y = 0;
-    }
-
-    if (snake.length > 1) {
-        for (uint8_t i = (snake.length - 1); i > 1; i--) {                  // All other blocks shift
-            snake.block_positions[i] = snake.block_positions[i - 1];
-        }
-        snake.block_positions[1] = old_head_pos;                            // Second block gets old head position
     }
 }
 
