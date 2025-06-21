@@ -150,14 +150,14 @@ static void check_food_collision() {
 }
 
 static void check_snake_collision() {
-                                        // Only self collision possible with length of 4
+    if (snake.length > 4) {                                    // Only self collision possible with length of 5
         for (uint8_t i = 1; i < snake.length; i++) {
             Pos snake_block = snake.block_positions[i];
             if ((snake.block_positions[0].x == snake_block.x) && (snake.block_positions[0].y == snake_block.y)) {
                 game_active = 0;
             }
         }
-    
+    }
 }
 
 static void draw_snake() {
@@ -186,8 +186,5 @@ void snake_timer_hit() {
 }
 
 /* 
-Todo:   little pixel diff food
-        snake collision
-        read two movements at once
-        draw effecient, only head tail?
+Todo:   draw effecient, only head tail?
 */

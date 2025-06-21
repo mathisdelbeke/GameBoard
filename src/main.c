@@ -81,7 +81,6 @@ static void update_menu() {
 int main() {
     init_peripherals();
     show_menu();
-
     while(1) {
         update_menu();
     }
