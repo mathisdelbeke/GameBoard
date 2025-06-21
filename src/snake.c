@@ -34,24 +34,29 @@ static volatile uint8_t time_to_move = 0;
 
 static Snake snake = {.direction = DIRECTION_UP, .length = 1};
 static Pos food_pos;    
-static Pos prev_tail_pos;                                           
+static Pos prev_tail_pos;
+static Direction current_direction_change;                                      
 
 static void init_game();
 static void init_move_timer();
-static void read_user_input();
+static void process_user_input();
+static void update_snake_direction();
 static void place_food();
 static void move_snake();
 static void check_food_collision();
+static void check_snake_collision();
 static void draw_snake();
 static void draw_food();
 
 void play_snake() {
     init_game();
     while (game_active) {
-        read_user_input();
+        process_user_input();
         if (time_to_move) {
+            update_snake_direction();
             move_snake();
             check_food_collision();
+            check_snake_collision();
             oled_fill(0x00);
             draw_snake();
             draw_food();
@@ -82,18 +87,25 @@ static void init_move_timer() {
     TIMSK0 |= (1 << OCIE0A);                    // Enable Timer0 Compare Match A interrupt
 }
 
-static void read_user_input() {
+static void process_user_input() {
     uint8_t bttns_states = bttns_read();
-    if (bttns_states & (1 << BTTN1)) {
-        if (snake.direction != DIRECTION_RIGHT) snake.direction = DIRECTION_LEFT;       // Opposite directions aren't allowed
+    if (bttns_states & (1 << BTTN1)) current_direction_change = DIRECTION_LEFT;
+    else if (bttns_states & (1 << BTTN2)) current_direction_change = DIRECTION_RIGHT;
+    else if (bttns_states & (1 << BTTN3)) current_direction_change = DIRECTION_UP;
+    else if (bttns_states & (1 << BTTN4)) current_direction_change = DIRECTION_DOWN;
+}
+
+static void update_snake_direction() {
+    if (current_direction_change == DIRECTION_LEFT) {
+        if (snake.direction != DIRECTION_RIGHT) snake.direction = DIRECTION_LEFT;       // To opposite direction isn't allowed
     }
-    else if (bttns_states & (1 << BTTN2)) {
+    else if (current_direction_change == DIRECTION_RIGHT) {
         if (snake.direction != DIRECTION_LEFT) snake.direction = DIRECTION_RIGHT;
     }
-    else if (bttns_states & (1 << BTTN3)) {
+    else if (current_direction_change == DIRECTION_UP) {
         if (snake.direction != DIRECTION_DOWN) snake.direction = DIRECTION_UP;
     }
-    else if (bttns_states & (1 << BTTN4)) {
+    else if (current_direction_change == DIRECTION_DOWN) {
         if (snake.direction != DIRECTION_UP) snake.direction = DIRECTION_DOWN;
     }
 }
@@ -135,6 +147,17 @@ static void check_food_collision() {
         snake.block_positions[snake.length - 1] = prev_tail_pos;
         place_food();
     }
+}
+
+static void check_snake_collision() {
+                                        // Only self collision possible with length of 4
+        for (uint8_t i = 1; i < snake.length; i++) {
+            Pos snake_block = snake.block_positions[i];
+            if ((snake.block_positions[0].x == snake_block.x) && (snake.block_positions[0].y == snake_block.y)) {
+                game_active = 0;
+            }
+        }
+    
 }
 
 static void draw_snake() {
