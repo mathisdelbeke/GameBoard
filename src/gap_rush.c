@@ -1,5 +1,22 @@
 #include "gap_rush.h"
 
+typedef struct {
+    uint8_t x;
+    uint8_t y;
+} Pos;
+
+typedef struct {
+    uint8_t shape[USER_WIDTH];
+    Pos old_pos;
+    Pos pos;
+} User;
+
+typedef struct {
+    uint8_t hole_x;
+    Pos old_pos;
+    Pos pos;
+} Rock;
+
 // Makes (8 x 8 pixels) shape on the bottom of screen
 static User user = {{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, .old_pos = {0, (SCREEN_PAGES - 1)}, .pos = {0, (SCREEN_PAGES - 1)}};
 static Rock rock;
@@ -7,11 +24,11 @@ static Rock rock;
 static uint8_t game_active = 0;
 static uint8_t bttns_states = 0;                
 static uint8_t lines_cleared = 0;
-static uint8_t rock_drop_delay;                 // Decreases throughout levels
-static const uint8_t lines_per_level = 3;       // Lines to clear before increase level
+static uint8_t rock_drop_delay;                         // Decreases throughout levels
+static const uint8_t lines_per_level = 3;               // Lines to clear before increase level
 
-static volatile uint8_t render_tick_count = 0;  // Timer is too fast, count ticks to 'rock_drop_delay' before rendering
-static volatile uint8_t rock_timer_hit = 0;     // When 'render_tick_count' = 'rock_drop_delay', time to rerender rock
+static volatile uint8_t timer_hit_count = 0;            // Timer is too fast, count ticks to 'rock_drop_delay' before rendering
+static volatile uint8_t time_to_update_rock = 0;        // When 'timer_hit_count' = 'rock_drop_delay', time to rerender rock
 
 static void init_game();
 static void generate_rock();
@@ -29,14 +46,14 @@ void play_gap_rush() {
     game_active = 1;
     while (game_active) {
         update_user();                          // Reads buttons and rerenders as fast as possible
-        if (rock_timer_hit) update_rock();      // If time to render is hit, rerender and check rock
+        if (time_to_update_rock) update_rock();      // If time to render is hit, rerender and check rock
     }
     TCCR0B &= ~((1 << CS02) | (1 << CS00));     // Turn timer off
 }
 
 static void init_game() {
     oled_fill(0x00);                            // Clear oled
-    draw_user(user);
+    draw_user();
     rng_seed();                                 // Seed the random generator
     generate_rock();
     lines_cleared = 0;
@@ -51,7 +68,7 @@ static void init_game() {
 void generate_rock() {
     uint8_t random_x1 = rng_rand_range((SCREEN_WIDTH - ROCK_HOLE_SIZE));       
     rock = (Rock){ .hole_x = random_x1, .old_pos = {0,0}, .pos = {0,0} };   // Rock at the top of screen, with hole in it
-    draw_rock(rock);
+    draw_rock();
 }
 
 void update_user() {
@@ -60,32 +77,29 @@ void update_user() {
         user.old_pos = user.pos;
         if (user.pos.x <= 0) user.pos.x = 0;        // Make sure user stays on screen
         else user.pos.x -= USER_WIDTH;              // Else move to left, 1 width at a time
-        draw_user(user);
+        draw_user();
     }
     else if (bttns_states & (1 << BTTN2)) {
         user.old_pos = user.pos;
         if (user.pos.x >= SCREEN_WIDTH - USER_WIDTH) user.pos.x = SCREEN_WIDTH - USER_WIDTH; // Make sure user stays on screen
         else user.pos.x += USER_WIDTH;                                                       // Else move to right
-        draw_user(user);
-    }
-    else if (bttns_states & (1 << BTTN3)) {         // Exit game before ending
-        game_active = 0;
+        draw_user();
     }
 }
 
 void update_rock() {
     if (rock.pos.y == SCREEN_PAGES) {               // If rock at bottom
         check_collision();          
-        erase_rock(rock);
+        erase_rock();
         generate_rock();                            // Make new rock
         update_level();                             
     }
     else {
         rock.old_pos = rock.pos;
         rock.pos.y++;                               // Move rock to bottom
-        draw_rock(rock);
+        draw_rock();
     }
-    rock_timer_hit = 0;                             // Reset time to render
+    time_to_update_rock = 0;                             // Reset time to render
 }
 
 void check_collision() {
@@ -109,15 +123,15 @@ void update_level() {
 }
 
 void gap_rush_timer_hit() {
-    render_tick_count++;
-    if (render_tick_count >= rock_drop_delay) {    // Count to rock_drop_delay before rerendering rock 
-        render_tick_count = 0;
-        rock_timer_hit = 1;
+    timer_hit_count++;
+    if (timer_hit_count >= rock_drop_delay) {    // Count to rock_drop_delay before rerendering rock 
+        timer_hit_count = 0;
+        time_to_update_rock = 1;
     }
 }
 
 void draw_user() {
-    erase_user(user.old_pos);                      // Erase old pixels first
+    erase_user();                                       // Erase old pixels first
     oled_set_cursor(user.pos.x, user.pos.y);
     for (uint8_t i = 0; i < USER_WIDTH; i++) {          // Draw the shape of user
         oled_send_data(user.shape[i]);
@@ -132,7 +146,7 @@ void erase_user() {
 }
 
 void draw_rock() {
-    erase_rock(rock);
+    erase_rock();
     oled_set_cursor(rock.pos.x, rock.pos.y);
     for (uint8_t i = 0; i < rock.hole_x; i++) {                             // Draw 8 pixels vertical until the hole is met
         oled_send_data(0xFF);

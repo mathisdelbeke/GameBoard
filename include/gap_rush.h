@@ -14,23 +14,6 @@
 #include "buttons.h"
 #include "rng.h"
 
-typedef struct {
-    uint8_t x;
-    uint8_t y;
-} Pos;
-
-typedef struct {
-    uint8_t shape[USER_WIDTH];
-    Pos old_pos;
-    Pos pos;
-} User;
-
-typedef struct {
-    uint8_t hole_x;
-    Pos old_pos;
-    Pos pos;
-} Rock;
-
 void play_gap_rush();
 void gap_rush_timer_hit();
 
