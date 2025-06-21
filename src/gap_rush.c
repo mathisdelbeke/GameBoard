@@ -1,5 +1,9 @@
 #include "gap_rush.h"
 
+#define USER_WIDTH 8
+#define ROCK_WIDTH 128         
+#define ROCK_HOLE_SIZE USER_WIDTH                                          //((USER_WIDTH * 2) + 1)
+
 typedef struct {
     uint8_t x;
     uint8_t y;
@@ -43,7 +47,6 @@ static void erase_rock();
 
 void play_gap_rush() {
     init_game();
-    game_active = 1;
     while (game_active) {
         update_user();                          // Reads buttons and rerenders as fast as possible
         if (time_to_update_rock) update_rock();      // If time to render is hit, rerender and check rock
@@ -58,6 +61,7 @@ static void init_game() {
     generate_rock();
     lines_cleared = 0;
     rock_drop_delay = 20;                       // Initial rock_drop_delay
+    game_active = 1;
 
     TCCR0A |= (1 << WGM01);                     // CTC mode
     TCCR0B |= (1 << CS02) | (1 << CS00);        // Prescaler 1024
@@ -66,10 +70,11 @@ static void init_game() {
 }
 
 void generate_rock() {
-    uint8_t random_x1 = rng_rand_range((SCREEN_WIDTH - ROCK_HOLE_SIZE));       
-    rock = (Rock){ .hole_x = random_x1, .old_pos = {0,0}, .pos = {0,0} };   // Rock at the top of screen, with hole in it
+    uint8_t random_x = rng_rand_range((SCREEN_WIDTH - ROCK_HOLE_SIZE));
+    random_x = (random_x / ROCK_HOLE_SIZE) * ROCK_HOLE_SIZE;               // Closest multiplication
+    rock = (Rock){ .hole_x = random_x, .old_pos = {0,0}, .pos = {0,0} };   // Rock at the top of screen, with hole in it
     draw_rock();
-}
+} 
 
 void update_user() {
     bttns_states = bttns_read();            
@@ -168,3 +173,6 @@ void erase_rock() {
         oled_send_data(0x00);
     }
 }
+
+// Just in time, seems like hit
+// No collision anymore after rock on bottom
