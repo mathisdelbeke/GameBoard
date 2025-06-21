@@ -34,8 +34,9 @@ static volatile uint8_t time_to_move = 0;
 
 static Snake snake = {.direction = DIRECTION_UP, .length = 1};
 static Pos food_pos;    
-static Pos prev_tail_pos;
-static Direction current_direction_change;                                      
+static Pos current_grow_pos;
+static uint8_t need_to_erase_tail = 1;                                                   
+static Direction current_direction_change;                                
 
 static void init_game();
 static void init_move_timer();
@@ -57,7 +58,6 @@ void play_snake() {
             move_snake();
             check_food_collision();
             check_snake_collision();
-            oled_fill(0x00);
             draw_snake();
             draw_food();
             time_to_move = 0;
@@ -117,8 +117,9 @@ static void place_food() {
 }
 
 static void move_snake() {
-    prev_tail_pos = snake.block_positions[snake.length - 1];                            // Keep track for growing when food collision
-    
+    current_grow_pos = snake.block_positions[snake.length - 1];                         // Place where eaten food spawns
+    need_to_erase_tail = 1;
+
     for (uint8_t i = (snake.length - 1); i > 0; i--) {                                  // Shift all but head 
         snake.block_positions[i] = snake.block_positions[i - 1];
     }
@@ -144,8 +145,9 @@ static void move_snake() {
 static void check_food_collision() {
     if ((snake.block_positions[0].x == food_pos.x) && (snake.block_positions[0].y == food_pos.y)) {
         snake.length++;
-        snake.block_positions[snake.length - 1] = prev_tail_pos;
+        snake.block_positions[snake.length - 1] = current_grow_pos;
         place_food();
+        need_to_erase_tail = 0;
     }
 }
 
@@ -161,11 +163,16 @@ static void check_snake_collision() {
 }
 
 static void draw_snake() {
-    for (uint8_t i = 0; i < snake.length; i++)  {
-        oled_set_cursor((snake.block_positions[i].x), (snake.block_positions[i].y));
+    if (need_to_erase_tail) {
+        oled_set_cursor(current_grow_pos.x, current_grow_pos.y);                          // Erase old tail pos
         for (uint8_t i = 0; i < COLUMNS_PER_SNAKE_BLOCK; i++) {
-            oled_send_data(0xFF);
+            oled_send_data(0x00);
         }
+    }
+    
+    oled_set_cursor((snake.block_positions[0].x), snake.block_positions[0].y);  // Draw new head pos
+    for (uint8_t i = 0; i < COLUMNS_PER_SNAKE_BLOCK; i++) {
+        oled_send_data(0xFF);
     }
 }
 
@@ -184,7 +191,3 @@ void snake_timer_hit() {
         time_to_move = 1;
     }
 }
-
-/* 
-Todo:   draw effecient, only head tail?
-*/
