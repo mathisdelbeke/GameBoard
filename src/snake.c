@@ -4,6 +4,8 @@
 
 #define COLUMNS_PER_SNAKE_BLOCK 8       // 8 x 8 pixels per snake block
 #define COLUMNS_PER_FOOD_BLOCK 8       // 8 x 8 pixels per food block
+
+#define INITIAL_HITS_TILL_MOVE 31
 #define MAX_SNAKE_LENGTH 128
 
 typedef enum {
@@ -26,7 +28,7 @@ typedef struct {
 
 static uint8_t game_active = 1;
 static volatile uint8_t timer_hit_count = 0;
-static volatile uint8_t timer_hits_till_move = 31;
+static volatile uint8_t timer_hits_till_move = INITIAL_HITS_TILL_MOVE;
 static volatile uint8_t time_to_move = 0;
 
 static Snake snake = {.direction = DIRECTION_UP, .length = 1};
@@ -66,7 +68,7 @@ static void init_game() {
     snake.direction = DIRECTION_RIGHT;
     snake.length = 1;
     timer_hit_count = 0;
-    timer_hits_till_move = 31;
+    timer_hits_till_move = INITIAL_HITS_TILL_MOVE;
     game_active = 1;
     place_food();
     init_move_timer();
@@ -79,11 +81,10 @@ static void init_move_timer() {
     TIMSK0 |= (1 << OCIE0A);                    // Enable Timer0 Compare Match A interrupt
 }
 
-// Could read 2 inputs and do both moves at the same time before drawing
 static void read_user_input() {
     uint8_t bttns_states = bttns_read();
     if (bttns_states & (1 << BTTN1)) {
-        if (snake.direction != DIRECTION_RIGHT) snake.direction = DIRECTION_LEFT;       // Opposite direction isn't allowed
+        if (snake.direction != DIRECTION_RIGHT) snake.direction = DIRECTION_LEFT;       // Opposite directions aren't allowed
     }
     else if (bttns_states & (1 << BTTN2)) {
         if (snake.direction != DIRECTION_LEFT) snake.direction = DIRECTION_RIGHT;
@@ -98,13 +99,14 @@ static void read_user_input() {
 
 static void place_food() {
     uint8_t random_x = rng_rand_range((SCREEN_WIDTH - COLUMNS_PER_FOOD_BLOCK));
-    food_pos.x = ((random_x / COLUMNS_PER_FOOD_BLOCK) * COLUMNS_PER_FOOD_BLOCK);    // Lower most close approved x from random
+    food_pos.x = ((random_x / COLUMNS_PER_FOOD_BLOCK) * COLUMNS_PER_FOOD_BLOCK);        // Lower most close approved x from random
     food_pos.y = rng_rand_range(SCREEN_PAGES - 1);
 }
 
 static void move_snake() {
     Pos old_head_pos = snake.block_positions[0];
     prev_tail_pos = snake.block_positions[snake.length - 1];
+    
     // Only update head block
     if (snake.direction == DIRECTION_RIGHT) {
         if (snake.block_positions[0].x < (SCREEN_WIDTH - COLUMNS_PER_SNAKE_BLOCK)) snake.block_positions[0].x += COLUMNS_PER_SNAKE_BLOCK;
@@ -123,9 +125,11 @@ static void move_snake() {
         else snake.block_positions[0].y = 0;
     }
 
-    snake.block_positions[1] = old_head_pos;                            // Second block gets old head position
-    for (uint8_t i = (snake.length - 1); i > 1; i--) {                  // All other blocks shift
-        snake.block_positions[i] = snake.block_positions[i - 1];
+    if (snake.length > 1) {
+        for (uint8_t i = (snake.length - 1); i > 1; i--) {                  // All other blocks shift
+            snake.block_positions[i] = snake.block_positions[i - 1];
+        }
+        snake.block_positions[1] = old_head_pos;                            // Second block gets old head position
     }
 }
 
@@ -153,6 +157,7 @@ static void draw_food() {
     }    
 }
 
+// ISR in main will call this callback
 void snake_timer_hit() {
     timer_hit_count++;
     if (timer_hit_count >= timer_hits_till_move) {                                  // Move delay = 16 ms * timer_hits_till_move
@@ -164,5 +169,6 @@ void snake_timer_hit() {
 /* 
 Todo:   little pixel diff food
         snake collision
+        read two movements at once
         draw effecient, only head tail?
 */
