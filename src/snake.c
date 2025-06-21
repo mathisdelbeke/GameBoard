@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 #define COLUMNS_PER_SNAKE_BLOCK 8       // 8 x 8 pixels per snake block
-#define COLUMNS_PER_FOOD_BLOCK 8       // 8 x 8 pixels per food block
+#define COLUMNS_PER_FOOD_BLOCK 8        // 8 x 8 pixels per food block, but only 4 x 4 will be visual
+#define FOOD_VISUAL_OFFSET 2            // Draw food smaller to differ from snake
 
 #define INITIAL_HITS_TILL_MOVE 31
 #define MAX_SNAKE_LENGTH 128
@@ -33,7 +34,7 @@ static volatile uint8_t time_to_move = 0;
 
 static Snake snake = {.direction = DIRECTION_UP, .length = 1};
 static Pos food_pos;    
-static Pos prev_tail_pos;                                           // Place where eaten food will be added
+static Pos prev_tail_pos;                                           
 
 static void init_game();
 static void init_move_timer();
@@ -99,14 +100,14 @@ static void read_user_input() {
 
 static void place_food() {
     uint8_t random_x = rng_rand_range((SCREEN_WIDTH - COLUMNS_PER_FOOD_BLOCK));
-    food_pos.x = ((random_x / COLUMNS_PER_FOOD_BLOCK) * COLUMNS_PER_FOOD_BLOCK);        // Lower most close approved x from random
+    food_pos.x = ((random_x / COLUMNS_PER_FOOD_BLOCK) * COLUMNS_PER_FOOD_BLOCK);        // Use closest multiplicity
     food_pos.y = rng_rand_range(SCREEN_PAGES - 1);
 }
 
 static void move_snake() {
-    prev_tail_pos = snake.block_positions[snake.length - 1];
+    prev_tail_pos = snake.block_positions[snake.length - 1];                            // Keep track for growing when food collision
     
-    for (uint8_t i = (snake.length - 1); i > 0; i--) {
+    for (uint8_t i = (snake.length - 1); i > 0; i--) {                                  // Shift all but head 
         snake.block_positions[i] = snake.block_positions[i - 1];
     }
     
@@ -146,9 +147,9 @@ static void draw_snake() {
 }
 
 static void draw_food() {
-    oled_set_cursor(food_pos.x, food_pos.y);
-    for (uint8_t i = 0; i < COLUMNS_PER_FOOD_BLOCK; i++) {
-        oled_send_data(0xFF);
+    oled_set_cursor((food_pos.x + FOOD_VISUAL_OFFSET), food_pos.y);
+    for (uint8_t i = 0; i < (COLUMNS_PER_FOOD_BLOCK - (FOOD_VISUAL_OFFSET * 2)); i++) {
+        oled_send_data(0x3C);
     }    
 }
 
