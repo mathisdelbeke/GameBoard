@@ -4,11 +4,15 @@
 #include "gap_rush.h"
 #include "memory_test.h"
 #include "snake.h"
+#include "pathfinder.h"
 
-#define NUM_GAMES 2
-#define GAP_RUSH 0
-#define MEMORY_TEST 1
-#define SNAKE 2
+typedef enum {
+    GAP_RUSH,
+    MEMORY_TEST,
+    SNAKE,
+    PATHFINDER,
+    NUM_GAMES                   // Auto increase when adding games to enum
+} GameID;
 
 static const uint8_t INDICATOR[] = {0x08,0x1C,0x22,0x08,0x08}; 
 static const uint8_t INDICATOR_POS_X = (SCREEN_WIDTH - 10);
@@ -47,13 +51,15 @@ static void show_menu() {
     oled_write_string("Start Memory Test");
     oled_set_cursor(0, 2);
     oled_write_string("Start Snake");
+    oled_set_cursor(0, 3);
+    oled_write_string("Start Pathfinder");
 }
 
 static void update_menu() {
     uint8_t bttns_states = bttns_read();
     if (bttns_states & (1 << BTTN1)) {
         prev_selected_option = selected_option;
-        if (selected_option < NUM_GAMES) selected_option++;    
+        if (selected_option < (NUM_GAMES - 1)) selected_option++;    
         else selected_option = 0;
         draw_indicator();
     }
@@ -73,6 +79,11 @@ static void update_menu() {
             timer_hit_callback = snake_timer_hit;
             play_snake();
             oled_fill(0x00);        // If game is done
+            show_menu();
+        }
+        else if (selected_option == PATHFINDER) {
+            play_pathfinder();
+            oled_fill(0X00);        // If game is done
             show_menu();
         }
     }

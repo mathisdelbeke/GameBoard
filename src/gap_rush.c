@@ -173,6 +173,3 @@ void erase_rock() {
         oled_send_data(0x00);
     }
 }
-
-// Just in time, seems like hit
-// No collision anymore after rock on bottom
